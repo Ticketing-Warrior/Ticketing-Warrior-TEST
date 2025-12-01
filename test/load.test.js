@@ -11,6 +11,16 @@ export const options = {
   duration: CONFIG.DURATION,
 };
 
+export function setup() {
+  console.log("🔴 테스트 모드 ON : 봇 중지");
+  http.post(`${CONFIG.BASE}/bot/test/on`);
+}
+
+export function teardown() {
+  console.log("🟢 테스트 모드 OFF : 봇 재시작 ");
+  http.post(`${CONFIG.BASE}/bot/test/off`);
+}
+
 export default function () {
   const nickname = `user_${__VU}_${__ITER}`;
   const seatId = getRandomSeatId();
@@ -38,44 +48,45 @@ export default function () {
   });
 
   sleep(Math.random() * 2 + 1);
-/* 4) 좌석 선택 + 예매 확정 */
-group("4) 좌석 선택 + 예매 확정", () => {
-  let success = false;
-  let attempts = 0;
-  const maxRetries = 5;
 
-  while (!success && attempts < maxRetries) {
-    attempts++;
-    const trySeatId = getRandomSeatId();
+  /* 4) 좌석 선택 + 예매 확정 */
+  group("4) 좌석 선택 + 예매 확정", () => {
+    let success = false;
+    let attempts = 0;
+    const maxRetries = 5;
 
-    const res = postJSON(`${CONFIG.BASE}/record/confirm`, {
-      seatId: trySeatId,
-    });
+    while (!success && attempts < maxRetries) {
+        attempts++;
+        const trySeatId = getRandomSeatId();
 
-    // 반복문 내 체크는 모두 “예매 시도"로 통일
-    check(res, {
-      "예매 시도": (r) => r.status === 200 || r.status === 409,
-    });
+        const res = postJSON(`${CONFIG.BASE}/record/confirm`, {
+        seatId: trySeatId,
+        });
 
-    if (res.status === 200) {
-      console.log(`예매 성공 | 좌석 ${trySeatId} | 유저 ${nickname}`);
+        // 반복문 내 체크는 모두 “예매 시도"로 통일
+        check(res, {
+        "예매 시도": (r) => r.status === 200 || r.status === 409,
+        });
 
-      // 성공 체크 딱 1회만 기록
-      check(res, { "예매 성공": () => true });
-      success = true;
-      break;
-    } else {
-      console.log(`예매 실패(${attempts}) | 좌석 ${trySeatId}`);
+        if (res.status === 200) {
+        console.log(`예매 성공 | 좌석 ${trySeatId} | 유저 ${nickname}`);
+
+        // 성공 체크 딱 1회만 기록
+        check(res, { "예매 성공": () => true });
+        success = true;
+        break;
+        } else {
+        console.log(`예매 실패(${attempts}) | 좌석 ${trySeatId}`);
+        }
+
+        sleep(0.3);
     }
 
-    sleep(0.3);
-  }
-
-  // 5회 다 실패한 경우에만 실패 체크 추가
-  if (!success) {
-    check(null, { "예매 실패": () => false });
-  }
-});
+    // 5회 다 실패한 경우에만 실패 체크 추가
+    if (!success) {
+        check(null, { "예매 실패": () => false });
+    }
+  });
 }
 
 export function handleSummary(data) {
