@@ -1,0 +1,14 @@
+{
+  "name": "ticketing-warrior-test",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "멋쟁이사자처럼 클라우드 엔지니어링 4기 프로젝트2 입니다.",
+  "main": "server.js",
+  "scripts": {
+    "test": "jest --detectOpenHandles",
+    "start": "node src/server.js",
+    "dev": "nodemon --exec node src/server.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
